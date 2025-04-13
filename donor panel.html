@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Food Donation Platform</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #89898d;
+      color: #333;
+      overflow-x: hidden;
+    }
+
+    .section {
+      padding: 40px 20px;
+      max-width: 500px;
+      margin: auto;
+      background-color: rgb(19, 19, 19);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-top: 50px;
+      position: relative;
+      z-index: 10;
+    }
+
+    h2 {
+      text-align: center;
+      color: #00796b;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    input,
+    select,
+    button {
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #0a0909;
+      outline: none;
+    }
+
+    button {
+      background-color: #00796b;
+      color: rgb(8, 8, 8);
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #004d40;
+    }
+
+    #preview {
+      max-width: 100%;
+      margin-top: 10px;
+      border-radius: 10px;
+      display: none;
+    }
+
+    .floating-food {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .food {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      opacity: 0.7;
+      animation: floatFood 20s linear infinite;
+    }
+
+    /* Positioning and animation durations for all food elements */
+    .food:nth-child(1) { left: 5%; animation-duration: 22s; }
+    .food:nth-child(2) { left: 15%; animation-duration: 25s; }
+    .food:nth-child(3) { left: 25%; animation-duration: 28s; }
+    .food:nth-child(4) { left: 35%; animation-duration: 20s; }
+    .food:nth-child(5) { left: 45%; animation-duration: 30s; }
+    .food:nth-child(6) { left: 55%; animation-duration: 24s; }
+    .food:nth-child(7) { left: 65%; animation-duration: 27s; }
+    .food:nth-child(8) { left: 75%; animation-duration: 23s; }
+    .food:nth-child(9) { left: 85%; animation-duration: 26s; }
+    .food:nth-child(10) { left: 95%; animation-duration: 29s; }
+
+    @keyframes floatFood {
+      0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+      }
+      20% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-120vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background animation layer -->
+  <div class="floating-food">
+    <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" class="food" />
+    <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" class="food" />
+    <img src="https://cdn-icons-png.flaticon.com/512/1046/1046790.png" class="food" />
+    <img src="https://cdn-icons-png.flaticon.com/512/135/135620.png" class="food" />
+    <img src="https://cdn-icons-png.flaticon.com/512/135/135651.png" class="food" />
+    <img src="https://cdn-icons-png.flaticon.com/512/3075/3075979.png" class="food" />
+    <img src="https://cdn-icons-png.flaticon.com/512/2909/2909763.png" class="food" />
+    <img src="https://cdn-icons-png.flaticon.com/512/806/806087.png" class="food" />
+    <img src="https://cdn-icons-png.flaticon.com/512/1046/1046857.png" class="food" />
+    <img src="https://cdn-icons-png.flaticon.com/512/1046/1046861.png" class="food" />
+  </div>
+
+  <!-- Main donor form -->
+  <section id="donor" class="section">
+    <h2>Donor Panel</h2>
+    <form id="donationForm">
+      <input type="text" name="donor_name" placeholder="Donor Name" required />
+
+      <select name="donor_role" required>
+        <option value="">Select Role</option>
+        <option value="individual">Restaurant</option>
+        <option value="NGO">NGO</option>
+        <option value="Volunteer">Volunteer</option>
+      </select>
+
+      <select name="food_type" required>
+        <option value="">Food Type</option>
+        <option value="veg">Veg</option>
+        <option value="non-veg">Non-Veg</option>
+      </select>
+
+      <select name="category" required>
+        <option value="">Category</option>
+        <option value="perishable">Perishable</option>
+        <option value="non-perishable">Non-Perishable</option>
+      </select>
+
+      <input type="number" step="0.1" name="quantity" id="quantity" placeholder="Quantity (in kg)" required />
+      <input type="datetime-local" name="expiry" required />
+
+      <input type="file" name="image" id="image" accept="image/*" onchange="previewImage(event)" />
+
+      <button type="button" onclick="estimateQuantityAI()">Estimate Quantity (AI)</button>
+
+      <img id="preview" />
+
+      <input type="hidden" name="lat" id="lat" />
+      <input type="hidden" name="lng" id="lng" />
+
+      <button type="submit">Submit Donation</button>
+    </form>
+  </section>
+
+  <script>
+    function previewImage(event) {
+      const preview = document.getElementById('preview');
+      const file = event.target.files[0];
+      if (file) {
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = 'block';
+      }
+    }
+
+    function estimateQuantityAI() {
+      const quantityInput = document.getElementById('quantity');
+      const estimated = (Math.random() * 15 + 5).toFixed(1);
+      quantityInput.value = estimated;
+    }
+  </script>
+</body>
+</html>
